@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  psql:
+    restart: unless-stopped
+    image: postgres:17.4-alpine3.21
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?err}
+      - POSTGRES_USER=${POSTGRES_USER:?err}
+      - POSTGRES_DB=${POSTGRES_DB:?err}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - inside
+    ports:
+      - "5432:5432"
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-03-12T18-04-18Z
+    container_name: minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+volumes:
+  postgres-db:
+  minio_data:
+networks:
+  inside:
