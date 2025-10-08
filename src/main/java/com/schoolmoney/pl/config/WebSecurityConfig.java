@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -53,7 +52,9 @@ public class WebSecurityConfig {
         httpSecurity.addFilterBefore(requestLogFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterBefore(trackHeadersFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.cors(Customizer.withDefaults());
-        httpSecurity.csrf((csrf) -> csrf.csrfTokenRepository(new HttpSessionCsrfTokenRepository()));
+
+        httpSecurity.csrf(csrf -> csrf.disable());
+
         httpSecurity.authorizeHttpRequests(auth -> {
 
             auth.requestMatchers(HttpMethod.OPTIONS, "/**")
