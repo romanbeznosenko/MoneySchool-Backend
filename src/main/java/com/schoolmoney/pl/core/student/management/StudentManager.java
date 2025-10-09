@@ -27,4 +27,8 @@ public class StudentManager {
     public Optional<StudentDAO> findById(UUID id) {
         return studentRepository.findById(id);
     }
+
+    public void deleteById(UUID id) {
+        studentRepository.deleteById(id);
+    }
 }

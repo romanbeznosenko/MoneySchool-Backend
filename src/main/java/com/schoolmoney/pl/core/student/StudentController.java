@@ -4,6 +4,7 @@ import com.schoolmoney.pl.core.student.models.StudentCreateRequest;
 import com.schoolmoney.pl.core.student.models.StudentEditRequest;
 import com.schoolmoney.pl.core.student.models.StudentGetPageResponse;
 import com.schoolmoney.pl.core.student.service.StudentCreateService;
+import com.schoolmoney.pl.core.student.service.StudentDeleteService;
 import com.schoolmoney.pl.core.student.service.StudentEditService;
 import com.schoolmoney.pl.core.student.service.StudentGetService;
 import com.schoolmoney.pl.core.user.management.UserNotFoundException;
@@ -25,6 +26,7 @@ public class StudentController {
     private final StudentCreateService studentCreateService;
     private final StudentGetService studentGetService;
     private final StudentEditService studentEditService;
+    private final StudentDeleteService studentDeleteService;
 
     private final static String DEFAULT_MESSAGE = "Operation successful.";
 
@@ -75,4 +77,20 @@ public class StudentController {
         return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_MESSAGE, HttpStatus.OK),
                 HttpStatus.OK);
     }
+
+    @DeleteMapping("/{studentId}")
+    @Operation(
+            description = "Delete student",
+            summary = "Delete student"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> deleteStudent(
+            @PathVariable UUID studentId
+    ){
+        studentDeleteService.deleteStudent(studentId);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_MESSAGE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
 }
