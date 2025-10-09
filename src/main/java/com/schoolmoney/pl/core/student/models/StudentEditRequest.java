@@ -18,9 +18,6 @@ public record StudentEditRequest(
         String lastName,
 
         @Schema(description = "New student birth date", example = "2004-08-19")
-        LocalDate birthDate,
-
-        @Schema(description = "New student parent id", example = "1")
-        UUID parentId
+        LocalDate birthDate
 ) {
 }

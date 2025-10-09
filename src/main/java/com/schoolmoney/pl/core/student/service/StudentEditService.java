@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,11 +35,6 @@ public class StudentEditService {
         studentDAO.setFirstName(studentEditRequest.firstName());
         studentDAO.setLastName(studentEditRequest.lastName());
         studentDAO.setBirthDate(studentEditRequest.birthDate());
-
-        UserDAO newParent = userManager.findUserById(studentEditRequest.parentId())
-                .orElseThrow(UserNotFoundException::new);
-
-        studentDAO.setParent(newParent);
 
         studentManager.saveToDatabase(studentDAO);
     }
