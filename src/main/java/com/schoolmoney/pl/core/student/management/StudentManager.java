@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,5 +31,9 @@ public class StudentManager {
 
     public void deleteById(UUID id) {
         studentRepository.deleteById(id);
+    }
+
+    public List<StudentDAO> findByParentId(UUID parentId) {
+        return studentRepository.findByParentIdAndIsArchivedFalse(parentId);
     }
 }

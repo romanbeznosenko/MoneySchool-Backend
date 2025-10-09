@@ -1,5 +1,6 @@
 package com.schoolmoney.pl.modules.classMember.management;
 
+import com.schoolmoney.pl.core.student.models.StudentDAO;
 import com.schoolmoney.pl.modules.classMember.models.ClassMemberDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,5 +35,17 @@ public class ClassMemberManager {
 
     public void delete(UUID id){
         classMemberRepository.deleteById(id);
+    }
+
+    public List<ClassMemberDAO> findByStudentAndIsConfirmedAndIsArchived(
+            StudentDAO student,
+            Boolean isConfirmed,
+            Boolean isArchived
+    ) {
+        return classMemberRepository.findByStudentAndIsConfirmedAndIsArchived(
+                student,
+                isConfirmed,
+                isArchived
+        );
     }
 }

@@ -53,7 +53,7 @@ public class ClassController {
             @RequestParam(name = "page", required = false, defaultValue = "1")int page,
             @RequestParam(name = "limit", required = false, defaultValue = "10")int limit
     ){
-        ClassGetPageResponse response = classGetService.getUserTreasurerClass(page, limit, isTreasurer);
+        ClassGetPageResponse response = classGetService.getUserClasses(page, limit, isTreasurer);
 
         return new ResponseEntity<>(new CustomResponse<>(response, DEFAULT_MESSAGE, HttpStatus.OK),
                 HttpStatus.OK);

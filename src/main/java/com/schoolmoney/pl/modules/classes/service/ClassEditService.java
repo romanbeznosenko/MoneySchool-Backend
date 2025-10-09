@@ -32,12 +32,12 @@ public class ClassEditService {
             throw new ClassTreasurerMismatchException();
         }
 
-        List<UserDAO> parentList = classManager.getParentsFromClass(classId);
-        if (parentList.contains(userDAO)){
-            classDAO.setTreasurer(userDAO);
-        } else {
-            throw new ClassParentNotInClassException();
-        }
+//        List<UserDAO> parentList = classManager.getParentsFromClass(classId);
+//        if (parentList.contains(userDAO)){
+//            classDAO.setTreasurer(classEditRequest.treasurer);
+//        } else {
+//            throw new ClassParentNotInClassException();
+//        }
 
         classDAO.setName(classEditRequest.name());
         classManager.saveToDatabase(classDAO);

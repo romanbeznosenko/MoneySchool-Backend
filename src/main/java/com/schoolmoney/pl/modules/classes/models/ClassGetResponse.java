@@ -15,6 +15,9 @@ public record ClassGetResponse(
         String name,
 
         @Schema(description = "Class' treasurer", implementation = UserResponse.class)
-        UserResponse treasurer
+        UserResponse treasurer,
+
+        @Schema(description = "Whether current user is treasurer of this class", example = "true")
+        Boolean isTreasurer
 ) {
 }

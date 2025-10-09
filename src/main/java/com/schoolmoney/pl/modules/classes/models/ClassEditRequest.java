@@ -10,10 +10,6 @@ import java.util.UUID;
 public record ClassEditRequest(
         @Schema(description = "New class name", example = "3A")
         @NotEmpty
-        String name,
-
-        @Schema(description = "New treasurer id", example = "1")
-        @NotEmpty
-        UUID treasurerId
+        String name
 ) {
 }
