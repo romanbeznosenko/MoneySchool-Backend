@@ -40,4 +40,8 @@ public class ClassManager {
     public List<UserDAO> getParentsFromClass(UUID classId) {
         return classRepository.findParentsByClassId(classId);
     }
+
+    public Page<ClassDAO> findAll(Specification<ClassDAO> specification, Pageable pageable) {
+        return classRepository.findAll(specification, pageable);
+    }
 }

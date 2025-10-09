@@ -9,6 +9,10 @@ import com.schoolmoney.pl.core.user.management.UserMapper;
 import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.core.user.models.UserResponse;
 import com.schoolmoney.pl.files.storage.services.StorageService;
+import com.schoolmoney.pl.modules.classes.management.ClassManager;
+import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
+import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.modules.classes.models.ClassGetResponse;
 import com.schoolmoney.pl.utils.CycleAvoidingMappingContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ public class StudentGetService {
     private final UserMapper userMapper;
     private final HttpServletRequest request;
     private final StorageService storageService;
+    private final ClassManager classManager;
 
     public StudentGetPageResponse getUserStudents(int page, int limit){
         UserDAO userDAO = (UserDAO)request.getAttribute("user");
@@ -46,6 +51,24 @@ public class StudentGetService {
                             storageService
                     );
 
+                    Page<ClassDAO> classDAOPage = classManager.findAll(
+                            ClassSpecifications.hasStudentMember(student.getId()),
+                            PageRequest.of(0, Integer.MAX_VALUE)
+                    );
+
+                    List<ClassGetResponse> classGetResponses = classDAOPage.get()
+                            .map(classDAO -> ClassGetResponse.builder()
+                                    .id(classDAO.getId())
+                                    .name(classDAO.getName())
+                                    .treasurer(
+                                            userMapper.mapToResponseFromEntity(
+                                                    classDAO.getTreasurer(),
+                                                    new CycleAvoidingMappingContext(),
+                                                    storageService)
+                                    )
+                                    .build())
+                            .toList();
+
                     return StudentGetResponse.builder()
                             .id(student.getId())
                             .firstName(student.getFirstName())
@@ -53,6 +76,7 @@ public class StudentGetService {
                             .avatar(student.getAvatar())
                             .birthDate(student.getBirthDate())
                             .parent(userResponse)
+                            .classes(classGetResponses)
                             .build();
                 })
                 .toList();

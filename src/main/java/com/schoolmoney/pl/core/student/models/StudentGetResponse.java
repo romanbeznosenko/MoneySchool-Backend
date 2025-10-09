@@ -1,10 +1,12 @@
 package com.schoolmoney.pl.core.student.models;
 
 import com.schoolmoney.pl.core.user.models.UserResponse;
+import com.schoolmoney.pl.modules.classes.models.ClassGetResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -25,6 +27,9 @@ public record StudentGetResponse(
         String avatar,
 
         @Schema(description = "Student's parent", implementation = UserResponse.class)
-        UserResponse parent
+        UserResponse parent,
+
+        @Schema(description = "Student's classes", implementation = ClassGetResponse.class)
+        List<ClassGetResponse> classes
 ) {
 }

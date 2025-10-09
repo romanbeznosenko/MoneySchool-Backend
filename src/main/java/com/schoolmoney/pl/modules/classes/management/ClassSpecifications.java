@@ -1,11 +1,8 @@
 package com.schoolmoney.pl.modules.classes.management;
 
-import com.schoolmoney.pl.core.student.models.StudentDAO;
-import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.modules.classMember.models.ClassMemberDAO;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
@@ -42,6 +39,28 @@ public class ClassSpecifications {
                     );
 
             return root.get("id").in(subquery);
+        };
+    }
+
+    public static Specification<ClassDAO> hasStudentMember(UUID studentId) {
+        return (root, query, criteriaBuilder) -> {
+            if (studentId == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            var subRoot = subquery.from(ClassMemberDAO.class);
+
+            subquery.select(subRoot.get("aClass").get("id"))
+                    .where(
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(subRoot.get("student").get("id"), studentId),
+                                    criteriaBuilder.isTrue(subRoot.get("isConfirmed")),
+                                    criteriaBuilder.isFalse(subRoot.get("isArchived"))
+                            )
+                    );
+
+            return criteriaBuilder.in(root.get("id")).value(subquery);
         };
     }
 }
