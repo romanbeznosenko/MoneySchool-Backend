@@ -18,6 +18,9 @@ public record ClassGetResponse(
         UserResponse treasurer,
 
         @Schema(description = "Whether current user is treasurer of this class", example = "true")
-        Boolean isTreasurer
+        Boolean isTreasurer,
+
+        @Schema(description = "Class members count", example = "23")
+        Long memberCount
 ) {
 }

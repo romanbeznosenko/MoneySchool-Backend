@@ -6,6 +6,7 @@ import com.schoolmoney.pl.core.user.management.UserMapper;
 import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.core.user.models.UserResponse;
 import com.schoolmoney.pl.files.storage.services.StorageService;
+import com.schoolmoney.pl.modules.classMember.management.ClassMemberSpecifications;
 import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
@@ -87,12 +88,15 @@ public class ClassGetService {
 
                     boolean isUserTreasurer = item.getTreasurer() != null &&
                             item.getTreasurer().getId().equals(userDAO.getId());
-
+                    long classMemberCount = classMemberManager.count(
+                            ClassMemberSpecifications.findByClassId(item.getId())
+                    );
                     return ClassGetResponse.builder()
                             .id(item.getId())
                             .name(item.getName())
                             .treasurer(userResponse)
                             .isTreasurer(isUserTreasurer)
+                            .memberCount(classMemberCount)
                             .build();
                 })
                 .toList();
