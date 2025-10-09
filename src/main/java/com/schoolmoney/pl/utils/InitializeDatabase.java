@@ -10,6 +10,8 @@ import com.schoolmoney.pl.modules.classMember.management.ClassMemberManager;
 import com.schoolmoney.pl.modules.classMember.models.ClassMemberDAO;
 import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountManager;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
 import com.schoolmoney.pl.utils.enums.AuthTypeEnum;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class InitializeDatabase {
     private final ClassManager classManager;
     private final StudentManager studentManager;
     private final ClassMemberManager classMemberManager;
+    private final FinanceAccountManager financeAccountManager;
 
     @PostConstruct
     public void initializeDatabase(){
@@ -61,6 +64,16 @@ public class InitializeDatabase {
                 .build();
 
         authAccountManager.saveToDatabase(authAccountDAO);
+
+        FinanceAccountDAO financeAccountDAO = FinanceAccountDAO.builder()
+                .IBAN("PL61109010140000071219812874")
+                .owner(userDAO)
+                .balance(5000.0)
+                .isTreasurerAccount(false)
+                .isArchived(false)
+                .build();
+
+        financeAccountManager.saveToDatabase(financeAccountDAO);
 
         // Create Test User (Parent)
         UserDAO userDAO1 = UserDAO.builder()
