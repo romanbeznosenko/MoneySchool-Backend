@@ -42,14 +42,14 @@ public class ClassMemberController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/list")
+    @GetMapping("/{class-id}/list")
     @Operation(
             description = "Get students from class",
             summary = "Get students from class"
     )
     @PreAuthorize("permitAll()")
     public ResponseEntity<CustomResponse<ClassMemberGetPageResponse>> getClassMembers(
-            @RequestParam(name = "classId")UUID classId,
+            @PathVariable("class-id") UUID classId,
             @RequestParam(name = "page", required = false, defaultValue = "1")int page,
             @RequestParam(name = "limit", required = false, defaultValue = "10")int limit
     ) throws ClassNotFoundException {
