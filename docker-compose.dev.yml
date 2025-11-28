@@ -11,11 +11,12 @@ services:
     environment:
       MINIO_ROOT_USER: ${STORAGE_S3_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${STORAGE_S3_SECRET_KEY}
+    expose:
+      - "9000"
     ports:
-      - "9500:9000"     # MinIO API
-      - "9501:9501"     # MinIO Console
+      - "9501:9501"
     networks:
-      - schoolmoney_network
+      - inside
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -33,10 +34,10 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - schoolmoney_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5444:5432"
+    expose:
+      - "5432"
     networks:
-      - schoolmoney_network
+      - inside
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -71,27 +72,25 @@ services:
       - STORAGE_S3_BUCKET_NAME=${STORAGE_S3_BUCKET_NAME}
       - STORAGE_S3_SECRET_KEY=${STORAGE_S3_SECRET_KEY}
       - STORAGE_S3_ACCESS_KEY=${STORAGE_S3_ACCESS_KEY}
-      - STORAGE_S3_ENDPOINT=http://files.schoolmoney.local
-      - MINIO_ENDPOINT=http://schoolmoney-minio:9501
+      - STORAGE_S3_ENDPOINT=http://schoolmoney-minio:9000
+      - MINIO_ENDPOINT=http://schoolmoney-minio:9000
       - MINIO_ACCESS_KEY=${STORAGE_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${STORAGE_S3_SECRET_KEY}
-    ports:
-      - "8081:8081"
+    expose:
+      - "8080"
     depends_on:
       schoolmoney-psql:
         condition: service_healthy
       schoolmoney-minio:
         condition: service_healthy
     networks:
-      schoolmoney_network:
-        aliases:
-          - files.schoolmoney.local
+      - inside
 
 volumes:
   schoolmoney_postgres_data:
   schoolmoney_minio_data:
 
 networks:
-  schoolmoney_network:
+  inside:
     name: schoolmoney_network
     driver: bridge
