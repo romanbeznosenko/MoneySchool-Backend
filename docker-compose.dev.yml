@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  minio:
+  schoolmoney-minio:
     restart: unless-stopped
     image: quay.io/minio/minio:RELEASE.2025-03-12T18-04-18Z
     container_name: minio
@@ -79,7 +79,7 @@ services:
     depends_on:
       gratify-psql:
         condition: service_healthy
-      minio:
+      schoolmoney-minio:
         condition: service_healthy
     networks:
       - inside
