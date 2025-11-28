@@ -76,7 +76,7 @@ services:
       - MINIO_ACCESS_KEY=${STORAGE_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${STORAGE_S3_SECRET_KEY}
     ports:
-      - "8090:8080"
+      - "8081:8081"
     depends_on:
       schoolmoney-psql:
         condition: service_healthy
