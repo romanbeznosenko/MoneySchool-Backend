@@ -59,4 +59,27 @@ public class ClassMemberExceptionHandler {
         CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(ClassMemberAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Student is already a member of this class.",
+                    content = @Content(
+                            examples = @ExampleObject(value = """
+                                {
+                                    "data": null,
+                                    "message": "Student is already a member of this class.",
+                                    "status": "409 CONFLICT"
+                                }
+                                """
+                            )
+                    )
+            )
+    })
+    public ResponseEntity<CustomResponse<String>> handleClassMemberAlreadyExistsException(ClassMemberAlreadyExistsException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
 }

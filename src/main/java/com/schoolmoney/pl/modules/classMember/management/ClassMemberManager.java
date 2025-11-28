@@ -2,6 +2,7 @@ package com.schoolmoney.pl.modules.classMember.management;
 
 import com.schoolmoney.pl.core.student.models.StudentDAO;
 import com.schoolmoney.pl.modules.classMember.models.ClassMemberDAO;
+import com.schoolmoney.pl.modules.classes.models.ClassDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,5 +48,9 @@ public class ClassMemberManager {
                 isConfirmed,
                 isArchived
         );
+    }
+
+    public boolean existsByClassAndStudent(ClassDAO aClass, StudentDAO student) {
+        return classMemberRepository.existsByClassIdAndStudentId(aClass.getId(), student.getId());
     }
 }

@@ -8,12 +8,10 @@ import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.modules.classAccessToken.management.ClassAccessTokenManager;
 import com.schoolmoney.pl.modules.classAccessToken.management.ClassAccessTokenSpecifications;
 import com.schoolmoney.pl.modules.classAccessToken.models.ClassAccessTokenDAO;
+import com.schoolmoney.pl.modules.classMember.management.ClassMemberAlreadyExistsException;
 import com.schoolmoney.pl.modules.classMember.management.ClassMemberIncorrectAccessCodeException;
 import com.schoolmoney.pl.modules.classMember.management.ClassMemberManager;
 import com.schoolmoney.pl.modules.classMember.models.ClassMemberDAO;
-import com.schoolmoney.pl.modules.classes.management.ClassManager;
-import com.schoolmoney.pl.modules.classes.management.ClassNotFoundException;
-import com.schoolmoney.pl.modules.classes.models.ClassDAO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +28,12 @@ import java.util.UUID;
 public class ClassMemberAddStudentService {
     private final HttpServletRequest request;
     private final StudentManager studentManager;
-    private final ClassManager classManager;
     private final ClassMemberManager classMemberManager;
     private final ClassAccessTokenManager classAccessTokenManager;
 
-    public void addStudentToClass(UUID classId, UUID studentId, String accessCode) {
+    public void addStudentToClass(UUID studentId, String accessCode) {
         UserDAO userDAO = (UserDAO) request.getAttribute("user");
-        log.info("Adding student {} to class {} with access code: {}", studentId, classId, accessCode);
+        log.info("Adding student {} with access code: {}", studentId, accessCode);
 
         StudentDAO studentDAO = studentManager.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
@@ -48,19 +45,13 @@ public class ClassMemberAddStudentService {
             throw new StudentParentMismatchException();
         }
 
-        ClassDAO classDAO = classManager.findById(classId)
-                .orElseThrow(ClassNotFoundException::new);
-
-        log.info("Found class: {}", classDAO.getName());
-
         Specification<ClassAccessTokenDAO> specification =
-                ClassAccessTokenSpecifications.findActiveToken()
-                        .and(ClassAccessTokenSpecifications.findByClass(classId));
+                ClassAccessTokenSpecifications.findActiveToken();
 
         Optional<ClassAccessTokenDAO> token = classAccessTokenManager.findOne(specification);
 
         if (token.isEmpty()) {
-            log.warn("No active token found for class: {}", classId);
+            log.warn("No active token found");
             throw new ClassMemberIncorrectAccessCodeException();
         }
 
@@ -74,8 +65,14 @@ public class ClassMemberAddStudentService {
 
         log.info("Access code validated successfully");
 
+        // Check if student is already a member of this class
+        if (classMemberManager.existsByClassAndStudent(token.get().getAClass(), studentDAO)) {
+            log.warn("Student {} is already a member of class {}", studentId, token.get().getAClass().getId());
+            throw new ClassMemberAlreadyExistsException();
+        }
+
         ClassMemberDAO classMemberDAO = ClassMemberDAO.builder()
-                .aClass(classDAO)
+                .aClass(token.get().getAClass())
                 .student(studentDAO)
                 .joinedAt(Instant.now())
                 .isConfirmed(true)
@@ -83,6 +80,6 @@ public class ClassMemberAddStudentService {
                 .build();
 
         classMemberManager.saveToDatabase(classMemberDAO);
-        log.info("Student {} successfully added to class {}", studentId, classId);
+        log.info("Student {} successfully added to class {}", studentId, token.get().getId());
     }
 }

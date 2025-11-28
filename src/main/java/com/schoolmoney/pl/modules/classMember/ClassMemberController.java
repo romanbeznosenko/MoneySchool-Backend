@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @RestController
@@ -32,11 +31,10 @@ public class ClassMemberController {
     )
     @PreAuthorize("permitAll()")
     public ResponseEntity<CustomResponse<Void>> addStudentToClass(
-            @RequestParam(name = "classId")UUID classId,
             @RequestParam(name = "studentId")UUID studentId,
             @RequestParam(name = "accessCode")String accessCode
-            ) throws NoSuchAlgorithmException, ClassNotFoundException {
-        classMemberAddStudentService.addStudentToClass(classId, studentId, accessCode);
+    ) {
+        classMemberAddStudentService.addStudentToClass(studentId, accessCode);
 
         return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_MESSAGE, HttpStatus.CREATED),
                 HttpStatus.CREATED);
