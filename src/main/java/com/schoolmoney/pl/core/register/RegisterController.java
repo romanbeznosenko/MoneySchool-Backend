@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 public class RegisterController {
@@ -26,7 +28,7 @@ public class RegisterController {
             description = "Register user with provided username and password")
     public ResponseEntity<CustomResponse<String>> registerUser(
             @Valid
-            @RequestBody RegisterRequest request) throws UserAlreadyExistException {
+            @RequestBody RegisterRequest request) throws UserAlreadyExistException, IOException {
         registerService.registerUser(request);
         return new ResponseEntity<>(new CustomResponse<>(null, "User created.", HttpStatus.CREATED),
                                     HttpStatus.CREATED);

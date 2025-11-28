@@ -1,5 +1,6 @@
 package com.schoolmoney.pl.core.register.services;
 
+import com.schoolmoney.pl.core.accountActivation.services.VerificationCodeSendService;
 import com.schoolmoney.pl.core.authAccount.management.AuthAccountManager;
 import com.schoolmoney.pl.core.authAccount.management.AuthAccountMapper;
 import com.schoolmoney.pl.core.authAccount.models.AuthAccount;
@@ -19,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -28,8 +31,9 @@ public class RegisterService {
     private final AuthAccountMapper authAccountMapper;
     private final UserMapper userMapper;
     private final UserManager userManager;
+    private final VerificationCodeSendService verificationCodeSendService;
 
-    public void registerUser(RegisterRequest request) throws UserAlreadyExistException {
+    public void registerUser(RegisterRequest request) throws UserAlreadyExistException, IOException {
         log.info("Creating new app user: {}", request.email());
         String trimmedEmail = request.email()
                                      .strip()
@@ -47,7 +51,6 @@ public class RegisterService {
                                                                            passwordEncoder.encode(trimmedPassword),
                                                                            AuthTypeEnum.EMAIL);
 
-            authAccount.setIsActivated(true);
             authAccountDAO = authAccountMapper.mapToEntity(authAccount, new CycleAvoidingMappingContext());
 
             User user = UserBuilders.buildUserFromEmail(authAccount.getEmail());
@@ -57,6 +60,7 @@ public class RegisterService {
             authAccountManager.saveToDatabase(authAccountDAO);
         }
 
+        verificationCodeSendService.sendVerificationCode(authAccountDAO);
         log.info("Created new app user: {}", request.email());
     }
 }

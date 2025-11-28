@@ -1,0 +1,12 @@
+package com.schoolmoney.pl.core.accountActivation.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Value;
+
+import java.util.UUID;
+
+@Value
+@AllArgsConstructor(staticName = "of")
+public class VerificationCodeId {
+    UUID id;
+}
