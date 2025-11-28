@@ -83,7 +83,9 @@ services:
       schoolmoney-minio:
         condition: service_healthy
     networks:
-      - schoolmoney_network
+      schoolmoney_network:
+        aliases:
+          - files.schoolmoney.local
 
 volumes:
   schoolmoney_postgres_data:
