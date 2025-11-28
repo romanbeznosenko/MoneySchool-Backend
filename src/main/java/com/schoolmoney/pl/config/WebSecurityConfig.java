@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -48,12 +49,31 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, TrackHeadersFilter trackHeadersFilter, RequestLogFilter requestLogFilter) throws Exception {
-        httpSecurity.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        httpSecurity.sessionManagement(sess -> sess
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+        );
+
+        // Configure SecurityContextRepository to persist authentication in session
+        httpSecurity.securityContext(context -> context
+                .requireExplicitSave(false)
+        );
+
         httpSecurity.addFilterBefore(requestLogFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterBefore(trackHeadersFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.cors(Customizer.withDefaults());
 
-        httpSecurity.csrf(csrf -> csrf.disable());
+        // Configure CSRF protection
+        CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        tokenRepository.setCookieName("XSRF-TOKEN");
+        tokenRepository.setHeaderName("X-XSRF-TOKEN");
+        tokenRepository.setCookiePath("/");
+
+        SpaCsrfTokenRequestHandler requestHandler = new SpaCsrfTokenRequestHandler();
+
+        httpSecurity.csrf(csrf -> csrf
+                .csrfTokenRepository(tokenRepository)
+                .csrfTokenRequestHandler(requestHandler)
+        );
 
         httpSecurity.authorizeHttpRequests(auth -> {
 
@@ -81,7 +101,7 @@ public class WebSecurityConfig {
                 .logoutSuccessHandler((request, response, authentication) -> response.setStatus(HttpServletResponse.SC_OK))
                 .invalidateHttpSession(true)
                 .deleteCookies("DFSESSIONID")
-                .deleteCookies("CSRF-TOKEN")
+                .deleteCookies("XSRF-TOKEN")
                 .permitAll()
         );
 
