@@ -27,7 +27,7 @@ public class UserController {
             summary = "Get information about user",
             description = "Get information about logged user"
     )
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CustomResponse<UserResponse>> getUerDetails() {
         UserResponse serviceResponse = userGetService.getUserDetails();
         return new ResponseEntity<>(new CustomResponse<>(serviceResponse, DEFAULT_MESSAGE, HttpStatus.OK),
@@ -39,7 +39,7 @@ public class UserController {
             summary = "Edit user",
             description = "Edit user"
     )
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CustomResponse<Void>> editUser(
             @RequestBody @Valid UserEditRequest request
     ) {

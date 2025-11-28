@@ -48,7 +48,7 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, TrackHeadersFilter trackHeadersFilter, RequestLogFilter requestLogFilter) throws Exception {
-        httpSecurity.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.NEVER));
+        httpSecurity.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         httpSecurity.addFilterBefore(requestLogFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterBefore(trackHeadersFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.cors(Customizer.withDefaults());
