@@ -21,7 +21,8 @@ public class SessionConfig {
         serializer.setUseHttpOnlyCookie(true);
         serializer.setSameSite("None");
         serializer.setUseSecureCookie(true);
-        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$");
+        // Remove domain pattern to allow cookies to work with the exact backend host
+        // This enables cross-origin cookie sharing when using withCredentials: true
         serializer.setCookieMaxAge(7 * 24 * 60 * 60);
 
         return serializer;
