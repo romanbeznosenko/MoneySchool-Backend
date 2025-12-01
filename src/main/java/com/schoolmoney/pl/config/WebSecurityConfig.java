@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,17 +64,19 @@ public class WebSecurityConfig {
         httpSecurity.cors(Customizer.withDefaults());
 
         // Configure CSRF protection
-        CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        tokenRepository.setCookieName("XSRF-TOKEN");
-        tokenRepository.setHeaderName("X-XSRF-TOKEN");
-        tokenRepository.setCookiePath("/");
+//        CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+//        tokenRepository.setCookieName("XSRF-TOKEN");
+//        tokenRepository.setHeaderName("X-XSRF-TOKEN");
+//        tokenRepository.setCookiePath("/");
+//
+//        SpaCsrfTokenRequestHandler requestHandler = new SpaCsrfTokenRequestHandler();
+//
+//        httpSecurity.csrf(csrf -> csrf
+//                .csrfTokenRepository(tokenRepository)
+//                .csrfTokenRequestHandler(requestHandler)
+//        );
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
-        SpaCsrfTokenRequestHandler requestHandler = new SpaCsrfTokenRequestHandler();
-
-        httpSecurity.csrf(csrf -> csrf
-                .csrfTokenRepository(tokenRepository)
-                .csrfTokenRequestHandler(requestHandler)
-        );
 
         httpSecurity.authorizeHttpRequests(auth -> {
 

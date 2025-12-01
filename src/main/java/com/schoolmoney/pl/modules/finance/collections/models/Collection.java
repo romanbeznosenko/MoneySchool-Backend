@@ -14,6 +14,7 @@ public class Collection {
     private String title;
     private String logo;
     private String description;
+    private Long goal;
     private Class aClass;
 
     private Instant createdAt;

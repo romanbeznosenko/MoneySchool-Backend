@@ -80,6 +80,8 @@ public class CollectionGetService {
                 .map(item -> CollectionResponse.builder()
                         .collectionId(item.getId())
                         .title(item.getTitle())
+                        .description(item.getDescription())
+                        .goal(item.getGoal())
                         .logo(item.getLogo())
                         .aClass(
                                 ClassGetResponse.builder()

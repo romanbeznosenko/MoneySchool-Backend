@@ -10,6 +10,7 @@ public record CollectionResponse(
         UUID collectionId,
         String title,
         String description,
+        Long goal,
         String logo,
         ClassGetResponse aClass
 ) {

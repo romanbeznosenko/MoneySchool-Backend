@@ -32,6 +32,9 @@ public class CollectionDAO {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "goal")
+    private Long goal;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
     private ClassDAO aClass;

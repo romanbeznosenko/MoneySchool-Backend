@@ -15,6 +15,7 @@ public class CollectionBuilders {
                 .collectionId(CollectionId.of(null))
                 .title(request.title())
                 .description(request.description())
+                .goal(request.goal())
                 .logo(null)
                 .aClass(aClass)
                 .isArchived(false)
