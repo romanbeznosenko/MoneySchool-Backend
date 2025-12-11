@@ -1,6 +1,7 @@
 package com.schoolmoney.pl.modules.finance.collections.models;
 
 import com.schoolmoney.pl.modules.classes.models.Class;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccount;
 import lombok.*;
 
 import java.time.Instant;
@@ -15,10 +16,13 @@ public class Collection {
     private String logo;
     private String description;
     private Long goal;
+    private FinanceAccount financeAccount;
+    private CollectionStatus status;
     private Class aClass;
 
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant goalReachedAt;
 
     private Boolean isArchived;
     private Instant archivedAt;

@@ -4,10 +4,16 @@ import com.schoolmoney.pl.modules.classes.management.ClassMapper;
 import com.schoolmoney.pl.modules.finance.collections.models.Collection;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionId;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountMapper;
 import com.schoolmoney.pl.utils.CycleAvoidingMappingContext;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), uses = {ClassMapper.class})
+@Mapper(
+        componentModel = "spring",
+        builder = @Builder(disableBuilder = true),
+        uses = {ClassMapper.class, FinanceAccountMapper.class},
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR
+)
 public interface CollectionMapper {
     @Mapping(target = "id", expression = "java(toMap.getCollectionId().getId())")
     CollectionDAO mapToEntity(Collection toMap,

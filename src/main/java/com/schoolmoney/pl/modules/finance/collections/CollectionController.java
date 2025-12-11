@@ -6,6 +6,8 @@ import com.schoolmoney.pl.modules.finance.collections.services.CollectionCreateS
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionDeleteService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionEditService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionGetService;
+import com.schoolmoney.pl.modules.finance.contributions.models.CollectionPaymentSummaryResponse;
+import com.schoolmoney.pl.modules.finance.contributions.services.CollectionPaymentSummaryService;
 import com.schoolmoney.pl.utils.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ public class CollectionController {
     private final CollectionGetService collectionGetService;
     private final CollectionEditService collectionEditService;
     private final CollectionDeleteService collectionDeleteService;
+    private final CollectionPaymentSummaryService collectionPaymentSummaryService;
 
     private final static String DEFAULT_RESPONSE = "Operation successful!";
 
@@ -90,5 +93,23 @@ public class CollectionController {
 
         return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
                 HttpStatus.OK);
+    }
+
+    @GetMapping("/{collectionId}/payment-summary")
+    @Operation(
+            description = "Get payment summary with per-student breakdown for a collection",
+            summary = "Get collection payment summary"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<CollectionPaymentSummaryResponse>> getPaymentSummary(
+            @PathVariable UUID collectionId
+    ) {
+        CollectionPaymentSummaryResponse response = collectionPaymentSummaryService
+                .getPaymentSummary(collectionId);
+
+        return new ResponseEntity<>(
+                new CustomResponse<>(response, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK
+        );
     }
 }

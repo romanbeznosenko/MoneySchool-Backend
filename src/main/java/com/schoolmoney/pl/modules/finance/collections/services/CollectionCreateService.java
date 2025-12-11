@@ -12,12 +12,20 @@ import com.schoolmoney.pl.modules.finance.collections.management.CollectionMappe
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionRequest;
 import com.schoolmoney.pl.modules.finance.collections.models.Collection;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountManager;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountMapper;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccount;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountType;
 import com.schoolmoney.pl.utils.CycleAvoidingMappingContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -29,7 +37,12 @@ public class CollectionCreateService {
     private final CollectionMapper collectionMapper;
     private final ClassManager classManager;
     private final ClassMapper classMapper;
+    private final FinanceAccountManager financeAccountManager;
+    private final FinanceAccountMapper financeAccountMapper;
 
+    private static final String COUNTRY_CODE = "PL";
+
+    @Transactional
     public void create(CollectionRequest collectionRequest, UUID classId){
         log.info("Creating collection for class with id: {}", classId);
 
@@ -41,11 +54,59 @@ public class CollectionCreateService {
         }
         Class aClass = classMapper.mapToDomain(classDAO, new CycleAvoidingMappingContext());
 
-        Collection collection = CollectionBuilders.buildCollectionFromRequest(collectionRequest, aClass);
-        CollectionDAO collectionDAO = collectionMapper.mapToEntity(collection, new CycleAvoidingMappingContext());
+        FinanceAccountDAO financeAccountDAO = FinanceAccountDAO.builder()
+                .IBAN(generatePolishIban())
+                .balance(0.0)
+                .accountType(FinanceAccountType.COLLECTION)
+                .isTreasurerAccount(true)
+                .owner(null)
+                .isArchived(false)
+                .build();
 
-        collectionManager.saveToDatabase(collectionDAO);
+        FinanceAccountDAO savedFinanceAccountDAO = financeAccountManager.saveToDatabase(financeAccountDAO);
+        FinanceAccount financeAccount = financeAccountMapper.mapToDomain(
+                savedFinanceAccountDAO,
+                new CycleAvoidingMappingContext()
+        );
+
+        Collection collection = CollectionBuilders.buildCollectionFromRequest(
+                collectionRequest,
+                aClass,
+                financeAccount
+        );
+        CollectionDAO collectionDAO = collectionMapper.mapToEntity(collection, new CycleAvoidingMappingContext());
+        collectionDAO.setFinanceAccount(financeAccountDAO); // transient
+        collectionManager.saveToDatabase(collectionDAO);    // cascade persist will handle financeAccountDAO
 
         log.info("Successfully created collection for class with id: {}", classId);
+    }
+
+    private String generatePolishIban() {
+        Random random = new Random();
+
+        StringBuilder bban = new StringBuilder();
+        for (int i = 0; i < 24; i++) {
+            bban.append(random.nextInt(10));
+        }
+
+        String ibanRaw = bban + countryCodeToDigits() + "00";
+
+        int checksum = 98 - mod97(ibanRaw);
+        String checksumStr = String.format("%02d", checksum);
+
+        return COUNTRY_CODE + checksumStr + bban;
+    }
+
+    private String countryCodeToDigits() {
+        StringBuilder sb = new StringBuilder();
+        for (char ch : COUNTRY_CODE.toCharArray()) {
+            sb.append((int) ch - 55);
+        }
+        return sb.toString();
+    }
+
+    private int mod97(String numericIban) {
+        BigInteger ibanNumber = new BigInteger(numericIban);
+        return ibanNumber.mod(BigInteger.valueOf(97)).intValue();
     }
 }

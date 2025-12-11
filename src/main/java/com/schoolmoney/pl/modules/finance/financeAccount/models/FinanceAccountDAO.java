@@ -1,6 +1,7 @@
 package com.schoolmoney.pl.modules.finance.financeAccount.models;
 
 import com.schoolmoney.pl.core.user.models.UserDAO;
+import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -34,12 +35,19 @@ public class FinanceAccountDAO {
     @Column(name = "balance")
     private Double balance;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type", nullable = false)
+    private FinanceAccountType accountType;
+
     @Column(name = "is_treasurer_account")
     private Boolean isTreasurerAccount;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "owner_id")
     private UserDAO owner;
+
+    @OneToOne(mappedBy = "financeAccount")
+    private CollectionDAO collection;
 
     @CreationTimestamp
     @Column(name = "created_at")

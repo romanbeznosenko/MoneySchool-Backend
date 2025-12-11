@@ -1,6 +1,8 @@
-package com.schoolmoney.pl.modules.finance.collections.models;
+package com.schoolmoney.pl.modules.finance.contributions.models;
 
-import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.core.student.models.StudentDAO;
+import com.schoolmoney.pl.core.user.models.UserDAO;
+import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,54 +19,49 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "collection")
-public class CollectionDAO {
+@Table(name = "contribution")
+public class ContributionDAO {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "title")
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "collection_id", nullable = false)
+    private CollectionDAO collection;
 
-    @Column(name = "logo")
-    private String logo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private StudentDAO student;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payer_id", nullable = false)
+    private UserDAO payer;
 
-    @Column(name = "goal")
-    private Long goal;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_account_id", nullable = false)
+    private FinanceAccountDAO sourceAccount;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "finance_account_id")
-    private FinanceAccountDAO financeAccount;
+    @Column(name = "amount", nullable = false)
+    private Double amount;
+
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private CollectionStatus status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id")
-    private ClassDAO aClass;
+    private ContributionStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Column(name = "processed_at")
+    private Instant processedAt;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @Column(name = "goal_reached_at")
-    private Instant goalReachedAt;
-
-    @Column(name = "archived_at")
-    private Instant archivedAt;
-
-    @Builder.Default
-    @Column(name = "is_archived")
-    private Boolean isArchived = false;
 
     @Override
     public int hashCode() {
@@ -75,7 +72,7 @@ public class CollectionDAO {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        CollectionDAO other = (CollectionDAO) obj;
+        ContributionDAO other = (ContributionDAO) obj;
 
         if (id != null && other.id != null) {
             return Objects.equals(id, other.id);
