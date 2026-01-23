@@ -4,10 +4,12 @@ import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountAlreadyExistingException;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountForbiddenCreationException;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountManager;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountCreateRequest;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,22 +35,41 @@ public class FinanceAccountCreateService {
         log.info("Creating finance account");
         UserDAO user = (UserDAO)request.getAttribute("user");
 
-        FinanceAccountDAO financeAccountDAO = financeAccountManager.findByOwnerId(user.getId())
+        FinanceAccountDAO existingAccount = financeAccountManager.findByOwnerId(user.getId())
                 .orElse(null);
+
+        // Check if user already has a finance account
+        if (existingAccount != null) {
+            throw new FinanceAccountAlreadyExistingException();
+        }
 
         Specification<ClassDAO> treasurerSpec = ClassSpecifications.findByUserTreasurer(user.getId());
         Page<ClassDAO> treasurerClasses = classManager.findUserTreasurerClasses(treasurerSpec, PageRequest.of(0, Integer.MAX_VALUE));
 
-        if (!financeAccountCreateRequest.isTreasurerAccount() && !treasurerClasses.isEmpty() && financeAccountDAO != null) {
+        boolean isActualTreasurer = !treasurerClasses.isEmpty();
+
+        // If user wants to create treasurer account but is not a treasurer - forbid
+        if (financeAccountCreateRequest.isTreasurerAccount() && !isActualTreasurer) {
             throw new FinanceAccountForbiddenCreationException();
         }
 
-        FinanceAccountDAO.builder()
+        // If user is a treasurer but wants to create regular account - forbid
+        if (!financeAccountCreateRequest.isTreasurerAccount() && isActualTreasurer) {
+            throw new FinanceAccountForbiddenCreationException();
+        }
+
+        FinanceAccountDAO newAccount = FinanceAccountDAO.builder()
                 .IBAN(generatePolishIban())
                 .balance(financeAccountCreateRequest.balance())
                 .isTreasurerAccount(financeAccountCreateRequest.isTreasurerAccount())
-                .owner(financeAccountCreateRequest.isTreasurerAccount() ? user : null)
+                .accountType(financeAccountCreateRequest.isTreasurerAccount() ?
+                        FinanceAccountType.COLLECTION : FinanceAccountType.USER)
+                .owner(user)
                 .build();
+
+        // Save the account to database
+        financeAccountManager.saveToDatabase(newAccount);
+        log.info("Finance account created successfully with IBAN: {}", newAccount.getIBAN());
     }
 
     private String generatePolishIban() {
