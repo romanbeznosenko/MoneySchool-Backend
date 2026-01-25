@@ -27,14 +27,11 @@ public class AttachmentDownloadService {
     public ResponseEntity<Resource> downloadAttachment(UUID attachmentId) {
         log.info("Downloading attachment: {}", attachmentId);
 
-        // Get attachment metadata
         CollectionAttachmentDAO attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(AttachmentNotFoundException::new);
 
-        // Get file from storage
         ResponseInputStream<GetObjectResponse> s3Object = storageService.getFile(attachment.getFilePath());
 
-        // Prepare response
         InputStreamResource resource = new InputStreamResource(s3Object);
 
         return ResponseEntity.ok()

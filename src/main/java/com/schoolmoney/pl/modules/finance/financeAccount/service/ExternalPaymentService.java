@@ -25,21 +25,17 @@ public class ExternalPaymentService {
         log.info("Processing external payment");
         UserDAO user = (UserDAO) request.getAttribute("user");
 
-        // Get user's finance account
         FinanceAccountDAO financeAccountDAO = financeAccountManager.findByOwnerId(user.getId())
                 .orElseThrow(FinanceAccountNotFoundException::new);
 
-        // Check if user is treasurer
         if (!financeAccountDAO.getIsTreasurerAccount()) {
             throw new NotTreasurerException();
         }
 
-        // Check if account has sufficient funds
         if (financeAccountDAO.getBalance() < paymentRequest.amount()) {
             throw new InsufficientFundsException();
         }
 
-        // Deduct payment amount from balance
         Long newBalance = financeAccountDAO.getBalance() - paymentRequest.amount();
         financeAccountDAO.setBalance(newBalance);
 

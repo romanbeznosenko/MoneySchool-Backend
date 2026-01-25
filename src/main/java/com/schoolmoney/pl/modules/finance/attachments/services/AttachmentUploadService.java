@@ -51,41 +51,34 @@ public class AttachmentUploadService {
         log.info("Uploading attachments for collection: {}", collectionId);
         UserDAO user = (UserDAO) request.getAttribute("user");
 
-        // Get collection
         CollectionDAO collection = collectionManager.findById(collectionId)
                 .orElseThrow(CollectionNotFoundException::new);
 
-        // Check attachment count
         long currentCount = attachmentRepository.countByCollectionId(collectionId);
         if (currentCount + files.size() > MAX_ATTACHMENTS) {
             throw new TooManyAttachmentsException();
         }
 
-        // Upload each file
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 continue;
             }
 
-            // Validate file type
             String contentType = file.getContentType();
             if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
                 throw new InvalidFileTypeException();
             }
 
-            // Generate unique key for storage
             String originalFilename = file.getOriginalFilename();
             String fileExtension = originalFilename != null && originalFilename.contains(".")
                     ? originalFilename.substring(originalFilename.lastIndexOf("."))
                     : "";
             String storageKey = "collections/" + collectionId + "/attachments/" + UUID.randomUUID() + fileExtension;
 
-            // Upload to storage
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(file.getBytes());
             storageService.uploadFile(storageKey, collection.getAClass().getSchool().getId(), contentType, outputStream);
 
-            // Save attachment metadata
             CollectionAttachmentDAO attachment = CollectionAttachmentDAO.builder()
                     .collection(collection)
                     .filename(originalFilename)

@@ -23,11 +23,9 @@ public class AttachmentGetService {
     public List<AttachmentResponse> getAttachments(UUID collectionId) {
         log.info("Getting attachments for collection: {}", collectionId);
 
-        // Check if collection exists
         collectionManager.findById(collectionId)
                 .orElseThrow(CollectionNotFoundException::new);
 
-        // Get attachments
         List<CollectionAttachmentDAO> attachments = attachmentRepository.findByCollectionId(collectionId);
 
         return attachments.stream()

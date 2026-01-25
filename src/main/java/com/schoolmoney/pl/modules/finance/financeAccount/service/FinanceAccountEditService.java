@@ -31,12 +31,10 @@ public class FinanceAccountEditService {
             throw new FinanceAccountOwnerMismatchException();
         }
 
-        // Validate that top-up amount is positive
         if (financeAccountEditRequest.balance() <= 0) {
             throw new IllegalArgumentException("Top-up amount must be positive");
         }
 
-        // Increment balance instead of overwriting
         Long currentBalance = financeAccountDAO.getBalance();
         Long newBalance = currentBalance + financeAccountEditRequest.balance();
         financeAccountDAO.setBalance(newBalance);
