@@ -21,7 +21,7 @@ public class FinanceAccountEditService {
     private final FinanceAccountManager financeAccountManager;
 
     public void editFinanceAccount(FinanceAccountEditRequest financeAccountEditRequest, UUID financeAccountId) {
-        log.info("Editing finance account");
+        log.info("Top-up finance account");
         UserDAO user = (UserDAO)request.getAttribute("user");
 
         FinanceAccountDAO financeAccountDAO = financeAccountManager.findById(financeAccountId)
@@ -31,7 +31,18 @@ public class FinanceAccountEditService {
             throw new FinanceAccountOwnerMismatchException();
         }
 
-        financeAccountDAO.setBalance(financeAccountEditRequest.balance());
+        // Validate that top-up amount is positive
+        if (financeAccountEditRequest.balance() <= 0) {
+            throw new IllegalArgumentException("Top-up amount must be positive");
+        }
+
+        // Increment balance instead of overwriting
+        Long currentBalance = financeAccountDAO.getBalance();
+        Long newBalance = currentBalance + financeAccountEditRequest.balance();
+        financeAccountDAO.setBalance(newBalance);
+
         financeAccountManager.saveToDatabase(financeAccountDAO);
+        log.info("Account topped up. Previous balance: {}, Added: {}, New balance: {}",
+                currentBalance, financeAccountEditRequest.balance(), newBalance);
     }
 }

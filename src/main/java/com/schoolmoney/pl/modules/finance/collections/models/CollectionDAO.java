@@ -1,6 +1,7 @@
 package com.schoolmoney.pl.modules.finance.collections.models;
 
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.modules.finance.attachments.models.CollectionAttachmentDAO;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -65,6 +68,10 @@ public class CollectionDAO {
     @Builder.Default
     @Column(name = "is_archived")
     private Boolean isArchived = false;
+
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CollectionAttachmentDAO> attachments = new ArrayList<>();
 
     @Override
     public int hashCode() {

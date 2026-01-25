@@ -1,22 +1,33 @@
 package com.schoolmoney.pl.modules.finance.collections;
 
+import com.schoolmoney.pl.modules.finance.attachments.models.AttachmentResponse;
+import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentDownloadService;
+import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentGetService;
+import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentUploadService;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionPageResponse;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionRequest;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionCreateService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionDeleteService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionEditService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionGetService;
+import com.schoolmoney.pl.modules.finance.collections.services.CollectionTransferService;
+import com.schoolmoney.pl.modules.finance.refunds.models.RefundRequest;
+import com.schoolmoney.pl.modules.finance.refunds.services.RefundService;
 import com.schoolmoney.pl.modules.finance.contributions.models.CollectionPaymentSummaryResponse;
 import com.schoolmoney.pl.modules.finance.contributions.services.CollectionPaymentSummaryService;
 import com.schoolmoney.pl.utils.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,6 +39,11 @@ public class CollectionController {
     private final CollectionEditService collectionEditService;
     private final CollectionDeleteService collectionDeleteService;
     private final CollectionPaymentSummaryService collectionPaymentSummaryService;
+    private final CollectionTransferService collectionTransferService;
+    private final RefundService refundService;
+    private final AttachmentUploadService attachmentUploadService;
+    private final AttachmentGetService attachmentGetService;
+    private final AttachmentDownloadService attachmentDownloadService;
 
     private final static String DEFAULT_RESPONSE = "Operation successful!";
 
@@ -111,5 +127,80 @@ public class CollectionController {
                 new CustomResponse<>(response, DEFAULT_RESPONSE, HttpStatus.OK),
                 HttpStatus.OK
         );
+    }
+
+    @PostMapping("/{collectionId}/transfer-to-treasurer")
+    @Operation(
+            description = "Transfer collection funds to treasurer account",
+            summary = "Transfer to treasurer"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> transferToTreasurer(
+            @PathVariable UUID collectionId
+    ) {
+        collectionTransferService.transferToTreasurer(collectionId);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/{collectionId}/refund")
+    @Operation(
+            description = "Refund parent for a student in collection",
+            summary = "Refund parent"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> refundParent(
+            @PathVariable UUID collectionId,
+            @Valid @RequestBody RefundRequest refundRequest
+    ) {
+        refundService.processRefund(collectionId, refundRequest);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/{collectionId}/attachments")
+    @Operation(
+            description = "Upload attachments to collection (max 5 files: PDF, Word, Excel, Images)",
+            summary = "Upload attachments"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> uploadAttachments(
+            @PathVariable UUID collectionId,
+            @RequestParam("files") List<MultipartFile> files
+    ) throws IOException {
+        attachmentUploadService.uploadAttachments(collectionId, files);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/{collectionId}/attachments")
+    @Operation(
+            description = "Get list of attachments for a collection",
+            summary = "Get attachments"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<List<AttachmentResponse>>> getAttachments(
+            @PathVariable UUID collectionId
+    ) {
+        List<AttachmentResponse> attachments = attachmentGetService.getAttachments(collectionId);
+
+        return new ResponseEntity<>(new CustomResponse<>(attachments, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/{collectionId}/attachments/{attachmentId}/download")
+    @Operation(
+            description = "Download attachment file",
+            summary = "Download attachment"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Resource> downloadAttachment(
+            @PathVariable UUID collectionId,
+            @PathVariable UUID attachmentId
+    ) {
+        return attachmentDownloadService.downloadAttachment(attachmentId);
     }
 }

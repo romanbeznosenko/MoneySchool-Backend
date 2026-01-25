@@ -96,4 +96,46 @@ public class FinanceAccountExceptionHandler {
         CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(NotTreasurerException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "403", description = "Only treasurer accounts can perform this operation.",
+                    content = @Content(
+                            examples = @ExampleObject(value = """
+                                      {
+                                      "data": null,
+                                      "message": "Only treasurer accounts can perform this operation",
+                                      "status": "403 FORBIDDEN"
+                                    }
+                                    """
+                            )
+                    )),
+    })
+    public ResponseEntity<CustomResponse<String>> handleNotTreasurerException(NotTreasurerException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "400", description = "Insufficient funds in account.",
+                    content = @Content(
+                            examples = @ExampleObject(value = """
+                                      {
+                                      "data": null,
+                                      "message": "Insufficient funds in account",
+                                      "status": "400 BAD_REQUEST"
+                                    }
+                                    """
+                            )
+                    )),
+    })
+    public ResponseEntity<CustomResponse<String>> handleInsufficientFundsException(InsufficientFundsException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }
