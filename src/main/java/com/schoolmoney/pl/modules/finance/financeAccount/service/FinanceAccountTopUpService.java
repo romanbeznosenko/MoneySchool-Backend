@@ -5,28 +5,26 @@ import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccou
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountNotFoundException;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountOwnerMismatchException;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
-import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountEditRequest;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountTopUpRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FinanceAccountEditService {
+public class FinanceAccountTopUpService {
     private final HttpServletRequest request;
     private final FinanceAccountManager financeAccountManager;
 
-    /**
-     * This service used to SET the balance.
-     * Now it performs a TOP-UP: it ADDS the provided amount to the current balance.
-     */
-    public void editFinanceAccount(FinanceAccountEditRequest financeAccountEditRequest, UUID financeAccountId) {
-        log.info("Topping up finance account via edit endpoint");
-        UserDAO user = (UserDAO)request.getAttribute("user");
+    @Transactional
+    public void topUpFinanceAccount(FinanceAccountTopUpRequest topUpRequest, UUID financeAccountId) {
+        log.info("Topping up finance account");
+        UserDAO user = (UserDAO) request.getAttribute("user");
 
         FinanceAccountDAO financeAccountDAO = financeAccountManager.findById(financeAccountId)
                 .orElseThrow(FinanceAccountNotFoundException::new);
@@ -36,7 +34,9 @@ public class FinanceAccountEditService {
         }
 
         Double current = financeAccountDAO.getBalance() == null ? 0.0 : financeAccountDAO.getBalance();
-        financeAccountDAO.setBalance(current + financeAccountEditRequest.amount());
+        Double amount = topUpRequest.amount();
+
+        financeAccountDAO.setBalance(current + amount);
         financeAccountManager.saveToDatabase(financeAccountDAO);
     }
 }

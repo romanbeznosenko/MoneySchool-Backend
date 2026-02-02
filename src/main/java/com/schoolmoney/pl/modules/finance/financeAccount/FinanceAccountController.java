@@ -6,6 +6,8 @@ import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountGe
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountCreateService;
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountEditService;
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountGetService;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountTopUpRequest;
+import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountTopUpService;
 import com.schoolmoney.pl.utils.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ public class FinanceAccountController {
     private final FinanceAccountGetService financeAccountGetService;
     private final FinanceAccountCreateService financeAccountCreateService;
     private final FinanceAccountEditService financeAccountEditService;
+    private final FinanceAccountTopUpService financeAccountTopUpService;
 
     @GetMapping("/")
     @Operation(
@@ -56,15 +59,36 @@ public class FinanceAccountController {
 
     @PutMapping("/{financeAccountId}")
     @Operation(
-            description = "Edit finance account",
-            summary = "Edit finance account"
+            description = "[DEPRECATED] This endpoint no longer sets the balance. It now performs a TOP-UP using the provided value as amount. Use POST /{financeAccountId}/top-up instead.",
+            summary = "DEPRECATED: Top up finance account via PUT"
     )
     @PreAuthorize("permitAll()")
     public ResponseEntity<CustomResponse<Void>> editFinanceAccount(
             @PathVariable UUID financeAccountId,
             @Valid @RequestBody FinanceAccountEditRequest editRequest
     ) {
-        financeAccountEditService.editFinanceAccount(editRequest, financeAccountId);
+        financeAccountTopUpService.topUpFinanceAccount(
+                FinanceAccountTopUpRequest.builder()
+                        .amount(editRequest.amount())
+                        .build(),
+                financeAccountId
+        );
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/{financeAccountId}/top-up")
+    @Operation(
+            description = "Top up finance account (adds amount to current balance)",
+            summary = "Top up finance account"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> topUpFinanceAccount(
+            @PathVariable UUID financeAccountId,
+            @Valid @RequestBody FinanceAccountTopUpRequest topUpRequest
+    ) {
+        financeAccountTopUpService.topUpFinanceAccount(topUpRequest, financeAccountId);
 
         return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
                 HttpStatus.OK);

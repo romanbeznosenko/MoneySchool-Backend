@@ -4,10 +4,12 @@ import com.schoolmoney.pl.core.user.models.UserDAO;
 import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountAlreadyExistingException;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountForbiddenCreationException;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountManager;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountCreateRequest;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountDAO;
+import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,24 +33,40 @@ public class FinanceAccountCreateService {
 
     public void createFinanceAccount(FinanceAccountCreateRequest financeAccountCreateRequest) {
         log.info("Creating finance account");
-        UserDAO user = (UserDAO)request.getAttribute("user");
 
-        FinanceAccountDAO financeAccountDAO = financeAccountManager.findByOwnerId(user.getId())
-                .orElse(null);
+        UserDAO user = (UserDAO) request.getAttribute("user");
+        if (user == null) {
+            throw new IllegalStateException("Authenticated user not found in request context");
+        }
+
+        FinanceAccountDAO existingAccount = financeAccountManager.findByOwnerId(user.getId()).orElse(null);
 
         Specification<ClassDAO> treasurerSpec = ClassSpecifications.findByUserTreasurer(user.getId());
-        Page<ClassDAO> treasurerClasses = classManager.findUserTreasurerClasses(treasurerSpec, PageRequest.of(0, Integer.MAX_VALUE));
+        Page<ClassDAO> treasurerClasses = classManager.findUserTreasurerClasses(
+                treasurerSpec,
+                PageRequest.of(0, Integer.MAX_VALUE)
+        );
 
-        if (!financeAccountCreateRequest.isTreasurerAccount() && !treasurerClasses.isEmpty() && financeAccountDAO != null) {
+        if (!financeAccountCreateRequest.isTreasurerAccount()
+                && !treasurerClasses.isEmpty()
+                && existingAccount != null) {
             throw new FinanceAccountForbiddenCreationException();
         }
 
-        FinanceAccountDAO.builder()
+        if (existingAccount != null) {
+            throw new FinanceAccountAlreadyExistingException();
+        }
+
+        FinanceAccountDAO financeAccountDAO = FinanceAccountDAO.builder()
                 .IBAN(generatePolishIban())
                 .balance(financeAccountCreateRequest.balance())
+                .accountType(FinanceAccountType.USER)
+                .isArchived(false)
                 .isTreasurerAccount(financeAccountCreateRequest.isTreasurerAccount())
-                .owner(financeAccountCreateRequest.isTreasurerAccount() ? user : null)
+                .owner(user)
                 .build();
+
+        financeAccountManager.saveToDatabase(financeAccountDAO);
     }
 
     private String generatePolishIban() {

@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 @Builder
-public record FinanceAccountEditRequest(
-        @Schema(description = "[TOP-UP] Amount to add to the finance account balance", example = "50.0")
+public record FinanceAccountTopUpRequest(
+        @Schema(description = "Top-up amount to add to the finance account balance", example = "50.0")
         @NotNull
         @Positive
         Double amount
