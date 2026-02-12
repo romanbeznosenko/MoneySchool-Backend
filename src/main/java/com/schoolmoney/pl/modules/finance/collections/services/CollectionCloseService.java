@@ -103,7 +103,8 @@ public class CollectionCloseService {
 
             // Process refund
             collectionAccount.setBalance(currentBalance - refundAmount);
-            payerAccount.setBalance(payerAccount.getBalance() + refundAmount);
+            double payerBalance = payerAccount.getBalance() != null ? payerAccount.getBalance() : 0.0;
+            payerAccount.setBalance(payerBalance + refundAmount);
 
             financeAccountManager.saveToDatabase(collectionAccount);
             financeAccountManager.saveToDatabase(payerAccount);

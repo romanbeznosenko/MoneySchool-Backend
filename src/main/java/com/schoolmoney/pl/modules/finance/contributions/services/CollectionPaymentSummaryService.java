@@ -8,6 +8,7 @@ import com.schoolmoney.pl.modules.finance.collections.management.CollectionNotFo
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.contributions.management.ContributionManager;
 import com.schoolmoney.pl.modules.finance.contributions.models.*;
+import com.schoolmoney.pl.modules.finance.refunds.management.RefundRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ public class CollectionPaymentSummaryService {
     private final CollectionManager collectionManager;
     private final ContributionManager contributionManager;
     private final ClassMemberManager classMemberManager;
+    private final RefundRepository refundRepository;
 
     public CollectionPaymentSummaryResponse getPaymentSummary(UUID collectionId) {
         log.info("Getting payment summary for collection: {}", collectionId);
@@ -53,11 +55,13 @@ public class CollectionPaymentSummaryService {
         // Calculate per-student goal
         double perStudentGoal = collection.getGoal().doubleValue() / totalStudents;
 
-        // Get total collected
-        double totalCollected = contributionManager.sumByCollectionAndStatus(
+        // Get total collected (contributions minus refunds)
+        double totalContributed = contributionManager.sumByCollectionAndStatus(
                 collection.getId(),
                 ContributionStatus.COMPLETED
         );
+        long totalRefunded = refundRepository.sumByCollectionId(collection.getId());
+        double totalCollected = totalContributed - totalRefunded;
 
         // Build per-student summaries
         List<StudentPaymentSummary> studentSummaries = new ArrayList<>();

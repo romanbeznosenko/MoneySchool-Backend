@@ -63,7 +63,8 @@ public class RefundService {
                 .orElseThrow(FinanceAccountNotFoundException::new);
 
         collectionAccount.setBalance(currentBalance - refundRequest.amount());
-        parentAccount.setBalance(parentAccount.getBalance() + refundRequest.amount());
+        double parentBalance = parentAccount.getBalance() != null ? parentAccount.getBalance() : 0.0;
+        parentAccount.setBalance(parentBalance + refundRequest.amount());
 
         financeAccountManager.saveToDatabase(collectionAccount);
         financeAccountManager.saveToDatabase(parentAccount);

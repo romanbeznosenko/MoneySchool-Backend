@@ -19,6 +19,7 @@ import com.schoolmoney.pl.modules.finance.collections.models.CollectionResponse;
 import com.schoolmoney.pl.modules.finance.contributions.management.ContributionManager;
 import com.schoolmoney.pl.modules.finance.contributions.models.ContributionStatus;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountGetResponse;
+import com.schoolmoney.pl.modules.finance.refunds.management.RefundRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class CollectionGetService {
     private final StudentManager studentManager;
     private final ClassMemberManager classMemberManager;
     private final ContributionManager contributionManager;
+    private final RefundRepository refundRepository;
 
     public CollectionPageResponse get(int limit, int page, boolean isTreasurer){
         log.info("Getting all collections");
@@ -109,11 +111,13 @@ public class CollectionGetService {
                 ? collection.getGoal().doubleValue() / totalStudents
                 : null;
 
-        // Get total collected
-        Double totalCollected = contributionManager.sumByCollectionAndStatus(
+        // Get total collected (contributions minus refunds)
+        Double totalContributed = contributionManager.sumByCollectionAndStatus(
                 collection.getId(),
                 ContributionStatus.COMPLETED
         );
+        Long totalRefunded = refundRepository.sumByCollectionId(collection.getId());
+        Double totalCollected = totalContributed - totalRefunded;
 
         // Calculate remaining amount
         Double remainingAmount = collection.getGoal() - totalCollected;
