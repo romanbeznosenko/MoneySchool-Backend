@@ -29,7 +29,7 @@ public class UserInterceptor implements HandlerInterceptor {
 
         UserDAO user = userManager.findUserById(userId)
                                   .orElseThrow(UserNotFoundException::new);
-
+        System.out.println(userId);
         request.setAttribute("user", user);
         log.info("UserInterceptor, set user successfully");
         return true;
