@@ -36,7 +36,7 @@ public class ExternalPaymentService {
             throw new InsufficientFundsException();
         }
 
-        Long newBalance = financeAccountDAO.getBalance() - paymentRequest.amount();
+        Double newBalance = financeAccountDAO.getBalance() - paymentRequest.amount();
         financeAccountDAO.setBalance(newBalance);
 
         financeAccountManager.saveToDatabase(financeAccountDAO);

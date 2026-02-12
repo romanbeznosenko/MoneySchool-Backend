@@ -6,11 +6,15 @@ import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentGetServ
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentUploadService;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionPageResponse;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionRequest;
+import com.schoolmoney.pl.modules.finance.collections.models.TreasurerContributionRequest;
+import com.schoolmoney.pl.modules.finance.collections.services.CollectionCloseService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionCreateService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionDeleteService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionEditService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionGetService;
+import com.schoolmoney.pl.modules.finance.collections.services.CollectionReportService;
 import com.schoolmoney.pl.modules.finance.collections.services.CollectionTransferService;
+import com.schoolmoney.pl.modules.finance.collections.services.TreasurerContributionService;
 import com.schoolmoney.pl.modules.finance.refunds.models.RefundRequest;
 import com.schoolmoney.pl.modules.finance.refunds.services.RefundService;
 import com.schoolmoney.pl.modules.finance.contributions.models.CollectionPaymentSummaryResponse;
@@ -34,10 +38,13 @@ import java.util.UUID;
 @RequestMapping("/api/collection")
 @RequiredArgsConstructor
 public class CollectionController {
+    private final CollectionCloseService collectionCloseService;
     private final CollectionCreateService collectionCreateService;
     private final CollectionGetService collectionGetService;
     private final CollectionEditService collectionEditService;
     private final CollectionDeleteService collectionDeleteService;
+    private final CollectionReportService collectionReportService;
+    private final TreasurerContributionService treasurerContributionService;
     private final CollectionPaymentSummaryService collectionPaymentSummaryService;
     private final CollectionTransferService collectionTransferService;
     private final RefundService refundService;
@@ -202,5 +209,57 @@ public class CollectionController {
             @PathVariable UUID attachmentId
     ) {
         return attachmentDownloadService.downloadAttachment(attachmentId);
+    }
+
+    @PostMapping("/{collectionId}/close")
+    @Operation(
+            description = "Close collection with auto-refund to all parents",
+            summary = "Close collection"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> closeCollection(
+            @PathVariable UUID collectionId
+    ) {
+        collectionCloseService.closeCollection(collectionId);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, "Collection closed. All payments have been refunded.", HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/{collectionId}/treasurer-contribution")
+    @Operation(
+            description = "Treasurer contributes own money to collection",
+            summary = "Treasurer contribution"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> treasurerContribution(
+            @PathVariable UUID collectionId,
+            @RequestBody @Valid TreasurerContributionRequest treasurerContributionRequest
+    ) {
+        treasurerContributionService.treasurerContribute(
+                collectionId,
+                treasurerContributionRequest.amount(),
+                treasurerContributionRequest.note()
+        );
+
+        return new ResponseEntity<>(new CustomResponse<>(null, "Treasurer contribution successful!", HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/{collectionId}/report")
+    @Operation(
+            description = "Generate PDF report for collection",
+            summary = "Generate collection report"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<byte[]> generateReport(
+            @PathVariable UUID collectionId
+    ) {
+        byte[] pdfBytes = collectionReportService.generatePdfReport(collectionId);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "attachment; filename=collection-report-" + collectionId + ".pdf")
+                .body(pdfBytes);
     }
 }

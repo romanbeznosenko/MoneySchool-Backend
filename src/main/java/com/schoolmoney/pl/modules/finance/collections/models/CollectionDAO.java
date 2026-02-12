@@ -59,8 +59,14 @@ public class CollectionDAO {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "deadline")
+    private Instant deadline;
+
     @Column(name = "goal_reached_at")
     private Instant goalReachedAt;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
 
     @Column(name = "archived_at")
     private Instant archivedAt;

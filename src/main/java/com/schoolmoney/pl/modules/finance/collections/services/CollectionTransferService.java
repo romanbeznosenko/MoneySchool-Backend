@@ -50,7 +50,7 @@ public class CollectionTransferService {
         }
 
         // Check if there are funds to transfer
-        Long collectedAmount = collectionAccount.getBalance();
+        Double collectedAmount = collectionAccount.getBalance();
         if (collectedAmount == null || collectedAmount <= 0) {
             throw new NoFundsToTransferException();
         }
@@ -60,7 +60,7 @@ public class CollectionTransferService {
                 .orElseThrow(FinanceAccountNotFoundException::new);
 
         // Perform atomic transfer
-        collectionAccount.setBalance(0L);
+        collectionAccount.setBalance(0.0);
         treasurerAccount.setBalance(treasurerAccount.getBalance() + collectedAmount);
 
         financeAccountManager.saveToDatabase(collectionAccount);

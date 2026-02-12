@@ -35,8 +35,8 @@ public class FinanceAccountEditService {
             throw new IllegalArgumentException("Top-up amount must be positive");
         }
 
-        Long currentBalance = financeAccountDAO.getBalance();
-        Long newBalance = currentBalance + financeAccountEditRequest.balance();
+        Double currentBalance = financeAccountDAO.getBalance();
+        Double newBalance = currentBalance + financeAccountEditRequest.balance();
         financeAccountDAO.setBalance(newBalance);
 
         financeAccountManager.saveToDatabase(financeAccountDAO);

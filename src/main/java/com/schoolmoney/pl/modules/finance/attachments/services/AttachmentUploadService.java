@@ -77,7 +77,7 @@ public class AttachmentUploadService {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(file.getBytes());
-            storageService.uploadFile(storageKey, collection.getAClass().getSchool().getId(), contentType, outputStream);
+            storageService.uploadFile(storageKey, collection.getAClass().getTreasurer().getId(), contentType, outputStream);
 
             CollectionAttachmentDAO attachment = CollectionAttachmentDAO.builder()
                     .collection(collection)

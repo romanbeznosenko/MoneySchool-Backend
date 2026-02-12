@@ -20,9 +20,12 @@ public class Collection {
     private CollectionStatus status;
     private Class aClass;
 
+    private Instant deadline;
+
     private Instant createdAt;
     private Instant updatedAt;
     private Instant goalReachedAt;
+    private Instant closedAt;
 
     private Boolean isArchived;
     private Instant archivedAt;

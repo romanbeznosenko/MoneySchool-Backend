@@ -50,6 +50,9 @@ public record CollectionResponse(
         Integer studentsPaidInFullCount,
 
         @Schema(description = "When goal was reached")
-        Instant goalReachedAt
+        Instant goalReachedAt,
+
+        @Schema(description = "Collection deadline")
+        Instant deadline
 ) {
 }

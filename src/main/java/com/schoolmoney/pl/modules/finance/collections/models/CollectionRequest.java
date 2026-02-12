@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
+import java.time.Instant;
+
 @Builder
 public record CollectionRequest(
         @NotBlank
@@ -16,6 +18,9 @@ public record CollectionRequest(
 
         @Positive
         @Schema(description = "Collection goal", example = "1000")
-        Long goal
+        Long goal,
+
+        @Schema(description = "Collection deadline", example = "2025-12-31T23:59:59Z")
+        Instant deadline
 ) {
 }

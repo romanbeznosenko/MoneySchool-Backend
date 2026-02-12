@@ -175,6 +175,7 @@ public class CollectionGetService {
                 .totalStudentsCount(totalStudents)
                 .studentsPaidInFullCount(studentsPaidInFull)
                 .goalReachedAt(collection.getGoalReachedAt())
+                .deadline(collection.getDeadline())
                 .build();
     }
 }

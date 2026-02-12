@@ -34,6 +34,7 @@ public class CollectionEditService {
         collectionDAO.setTitle(collectionRequest.title());
         collectionDAO.setDescription(collectionRequest.description());
         collectionDAO.setGoal(collectionRequest.goal());
+        collectionDAO.setDeadline(collectionRequest.deadline());
         collectionManager.saveToDatabase(collectionDAO);
 
         log.info("Edit collection with id {} finished successfully!",collectionId);

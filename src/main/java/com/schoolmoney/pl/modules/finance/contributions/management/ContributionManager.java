@@ -102,4 +102,12 @@ public class ContributionManager {
                 status
         );
     }
+
+    public List<Object[]> sumByCollectionGroupedByPayer(UUID collectionId, ContributionStatus status) {
+        return contributionRepository.sumByCollectionGroupedByPayer(collectionId, status);
+    }
+
+    public List<ContributionDAO> findByCollectionIdAndStatus(UUID collectionId, ContributionStatus status) {
+        return contributionRepository.findByCollectionIdAndStatus(collectionId, status);
+    }
 }

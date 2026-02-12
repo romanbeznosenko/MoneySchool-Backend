@@ -54,7 +54,7 @@ public class RefundService {
             throw new FinanceAccountNotFoundException();
         }
 
-        Long currentBalance = collectionAccount.getBalance();
+        Double currentBalance = collectionAccount.getBalance();
         if (currentBalance == null || currentBalance < refundRequest.amount()) {
             throw new RefundAmountExceedsCollectedException();
         }
