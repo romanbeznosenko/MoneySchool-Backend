@@ -70,6 +70,9 @@ public class AttachmentUploadService {
             }
 
             String originalFilename = file.getOriginalFilename();
+            String safeFilename = (originalFilename != null && !originalFilename.isBlank())
+                    ? originalFilename
+                    : "attachment";
             String fileExtension = originalFilename != null && originalFilename.contains(".")
                     ? originalFilename.substring(originalFilename.lastIndexOf("."))
                     : "";
@@ -81,7 +84,7 @@ public class AttachmentUploadService {
 
             CollectionAttachmentDAO attachment = CollectionAttachmentDAO.builder()
                     .collection(collection)
-                    .filename(originalFilename)
+                    .filename(safeFilename)
                     .contentType(contentType)
                     .filePath(storageKey)
                     .fileSize(file.getSize())
