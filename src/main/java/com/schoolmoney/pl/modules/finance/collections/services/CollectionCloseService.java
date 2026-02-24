@@ -6,6 +6,7 @@ import com.schoolmoney.pl.modules.finance.collections.management.CollectionNotFo
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionStatus;
 import com.schoolmoney.pl.modules.finance.contributions.management.ContributionManager;
+import com.schoolmoney.pl.modules.finance.contributions.models.ContributionDAO;
 import com.schoolmoney.pl.modules.finance.contributions.models.ContributionStatus;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountManager;
 import com.schoolmoney.pl.modules.finance.financeAccount.management.FinanceAccountNotFoundException;
@@ -76,11 +77,16 @@ public class CollectionCloseService {
                 ContributionStatus.COMPLETED
         );
 
+        // Load all completed contributions once, outside the loop
+        List<ContributionDAO> allContributions = contributionManager.findByCollectionIdAndStatus(
+                collection.getId(), ContributionStatus.COMPLETED
+        );
+
         for (Object[] payerSum : payerSums) {
             UUID payerId = (UUID) payerSum[0];
-            Double amount = (Double) payerSum[1];
+            double amount = ((Number) payerSum[1]).doubleValue();
 
-            if (amount == null || amount <= 0) continue;
+            if (amount <= 0) continue;
 
             // Find payer's finance account
             FinanceAccountDAO payerAccount = financeAccountManager.findByOwnerId(payerId)
@@ -93,7 +99,7 @@ public class CollectionCloseService {
             }
 
             // Check if collection account has enough balance
-            Double currentBalance = collectionAccount.getBalance();
+            double currentBalance = collectionAccount.getBalance() != null ? collectionAccount.getBalance() : 0.0;
             double refundAmount = Math.min(amount, currentBalance);
 
             if (refundAmount <= 0) {
@@ -109,24 +115,19 @@ public class CollectionCloseService {
             financeAccountManager.saveToDatabase(collectionAccount);
             financeAccountManager.saveToDatabase(payerAccount);
 
-            // Save refund record (use first student contribution for reference)
-            var contributions = contributionManager.findByCollectionIdAndStatus(
-                    collection.getId(), ContributionStatus.COMPLETED
-            );
-
-            var payerContribution = contributions.stream()
+            // Find first contribution for this payer from preloaded list
+            allContributions.stream()
                     .filter(c -> c.getPayer().getId().equals(payerId))
-                    .findFirst();
-
-            if (payerContribution.isPresent()) {
-                RefundDAO refund = RefundDAO.builder()
-                        .collection(collection)
-                        .student(payerContribution.get().getStudent())
-                        .amount((long) refundAmount)
-                        .reason("Auto-refund: Collection closed by treasurer")
-                        .build();
-                refundRepository.save(refund);
-            }
+                    .findFirst()
+                    .ifPresent(payerContribution -> {
+                        RefundDAO refund = RefundDAO.builder()
+                                .collection(collection)
+                                .student(payerContribution.getStudent())
+                                .amount(Math.round(refundAmount))
+                                .reason("Auto-refund: Collection closed by treasurer")
+                                .build();
+                        refundRepository.save(refund);
+                    });
 
             log.info("Auto-refund: {} PLN returned to payer {}", refundAmount, payerId);
         }
