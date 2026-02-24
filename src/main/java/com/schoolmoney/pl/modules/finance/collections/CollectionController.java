@@ -1,6 +1,7 @@
 package com.schoolmoney.pl.modules.finance.collections;
 
 import com.schoolmoney.pl.modules.finance.attachments.models.AttachmentResponse;
+import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentDeleteService;
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentDownloadService;
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentGetService;
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentUploadService;
@@ -51,6 +52,7 @@ public class CollectionController {
     private final AttachmentUploadService attachmentUploadService;
     private final AttachmentGetService attachmentGetService;
     private final AttachmentDownloadService attachmentDownloadService;
+    private final AttachmentDeleteService attachmentDeleteService;
 
     private final static String DEFAULT_RESPONSE = "Operation successful!";
 
@@ -209,6 +211,22 @@ public class CollectionController {
             @PathVariable UUID attachmentId
     ) {
         return attachmentDownloadService.downloadAttachment(attachmentId);
+    }
+
+    @DeleteMapping("/{collectionId}/attachments/{attachmentId}")
+    @Operation(
+            description = "Delete attachment from collection",
+            summary = "Delete attachment"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> deleteAttachment(
+            @PathVariable UUID collectionId,
+            @PathVariable UUID attachmentId
+    ) {
+        attachmentDeleteService.deleteAttachment(collectionId, attachmentId);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
     }
 
     @PostMapping("/{collectionId}/close")
