@@ -5,6 +5,7 @@ import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentDeleteS
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentDownloadService;
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentGetService;
 import com.schoolmoney.pl.modules.finance.attachments.services.AttachmentUploadService;
+import com.schoolmoney.pl.modules.finance.collections.models.CollectionId;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionPageResponse;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionRequest;
 import com.schoolmoney.pl.modules.finance.collections.models.TreasurerContributionRequest;
@@ -62,13 +63,13 @@ public class CollectionController {
             summary = "Add collection"
     )
     @PreAuthorize("permitAll()")
-    public ResponseEntity<CustomResponse<Void>> addCollection(
+    public ResponseEntity<CustomResponse<CollectionId>> addCollection(
             @RequestParam(name = "classId")UUID classId,
             @RequestBody @Valid CollectionRequest request
     ) {
-        collectionCreateService.create(request, classId);
+        UUID collectionId = collectionCreateService.create(request, classId);
 
-        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.CREATED),
+        return new ResponseEntity<>(new CustomResponse<>(CollectionId.of(collectionId), DEFAULT_RESPONSE, HttpStatus.CREATED),
                 HttpStatus.CREATED);
     }
 
