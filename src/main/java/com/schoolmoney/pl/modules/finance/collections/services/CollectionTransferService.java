@@ -61,7 +61,8 @@ public class CollectionTransferService {
 
         // Perform atomic transfer
         collectionAccount.setBalance(0.0);
-        treasurerAccount.setBalance(treasurerAccount.getBalance() + collectedAmount);
+        double currentTreasurerBalance = treasurerAccount.getBalance() != null ? treasurerAccount.getBalance() : 0.0;
+        treasurerAccount.setBalance(currentTreasurerBalance + collectedAmount);
 
         financeAccountManager.saveToDatabase(collectionAccount);
         financeAccountManager.saveToDatabase(treasurerAccount);
