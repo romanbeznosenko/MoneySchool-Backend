@@ -62,8 +62,7 @@ public class FinanceAccountCreateService {
                 .IBAN(generatePolishIban())
                 .balance(financeAccountCreateRequest.balance())
                 .isTreasurerAccount(financeAccountCreateRequest.isTreasurerAccount())
-                .accountType(financeAccountCreateRequest.isTreasurerAccount() ?
-                        FinanceAccountType.COLLECTION : FinanceAccountType.USER)
+                .accountType(FinanceAccountType.USER)
                 .owner(user)
                 .build();
 
