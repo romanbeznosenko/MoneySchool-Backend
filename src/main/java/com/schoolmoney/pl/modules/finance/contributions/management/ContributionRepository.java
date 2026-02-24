@@ -81,4 +81,16 @@ public interface ContributionRepository extends JpaRepository<ContributionDAO, U
             @Param("studentId") UUID studentId,
             @Param("status") ContributionStatus status
     );
+
+    // Sum contributions by collection grouped by payer
+    @Query("SELECT c.payer.id, COALESCE(SUM(c.amount), 0.0) FROM ContributionDAO c " +
+           "WHERE c.collection.id = :collectionId AND c.status = :status " +
+           "GROUP BY c.payer.id")
+    List<Object[]> sumByCollectionGroupedByPayer(
+            @Param("collectionId") UUID collectionId,
+            @Param("status") ContributionStatus status
+    );
+
+    // Find all completed contributions for a collection
+    List<ContributionDAO> findByCollectionIdAndStatus(UUID collectionId, ContributionStatus status);
 }

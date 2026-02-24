@@ -1,11 +1,13 @@
 package com.schoolmoney.pl.modules.finance.collections.models;
 
 import com.schoolmoney.pl.modules.classes.models.ClassGetResponse;
+import com.schoolmoney.pl.modules.finance.attachments.models.AttachmentResponse;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountGetResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -50,6 +52,12 @@ public record CollectionResponse(
         Integer studentsPaidInFullCount,
 
         @Schema(description = "When goal was reached")
-        Instant goalReachedAt
+        Instant goalReachedAt,
+
+        @Schema(description = "Collection deadline")
+        Instant deadline,
+
+        @Schema(description = "Files attached to this collection")
+        List<AttachmentResponse> attachments
 ) {
 }

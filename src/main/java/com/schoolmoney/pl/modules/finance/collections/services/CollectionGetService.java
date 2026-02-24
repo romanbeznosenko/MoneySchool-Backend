@@ -11,6 +11,8 @@ import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
 import com.schoolmoney.pl.modules.classes.models.ClassGetResponse;
+import com.schoolmoney.pl.modules.finance.attachments.management.CollectionAttachmentRepository;
+import com.schoolmoney.pl.modules.finance.attachments.models.AttachmentResponse;
 import com.schoolmoney.pl.modules.finance.collections.management.CollectionManager;
 import com.schoolmoney.pl.modules.finance.collections.management.CollectionSpecifications;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
@@ -19,6 +21,7 @@ import com.schoolmoney.pl.modules.finance.collections.models.CollectionResponse;
 import com.schoolmoney.pl.modules.finance.contributions.management.ContributionManager;
 import com.schoolmoney.pl.modules.finance.contributions.models.ContributionStatus;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountGetResponse;
+import com.schoolmoney.pl.modules.finance.refunds.management.RefundRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +44,8 @@ public class CollectionGetService {
     private final StudentManager studentManager;
     private final ClassMemberManager classMemberManager;
     private final ContributionManager contributionManager;
+    private final RefundRepository refundRepository;
+    private final CollectionAttachmentRepository attachmentRepository;
 
     public CollectionPageResponse get(int limit, int page, boolean isTreasurer){
         log.info("Getting all collections");
@@ -109,11 +114,13 @@ public class CollectionGetService {
                 ? collection.getGoal().doubleValue() / totalStudents
                 : null;
 
-        // Get total collected
-        Double totalCollected = contributionManager.sumByCollectionAndStatus(
+        // Get total collected (contributions minus refunds)
+        Double totalContributed = contributionManager.sumByCollectionAndStatus(
                 collection.getId(),
                 ContributionStatus.COMPLETED
         );
+        Long totalRefunded = refundRepository.sumByCollectionId(collection.getId());
+        Double totalCollected = totalContributed - totalRefunded;
 
         // Calculate remaining amount
         Double remainingAmount = collection.getGoal() - totalCollected;
@@ -143,6 +150,19 @@ public class CollectionGetService {
                     .isTreasurerAccount(collection.getFinanceAccount().getIsTreasurerAccount())
                     .build();
         }
+
+        // Build attachments list
+        List<AttachmentResponse> attachments = attachmentRepository
+                .findByCollectionId(collection.getId())
+                .stream()
+                .map(a -> new AttachmentResponse(
+                        a.getId(),
+                        a.getFilename(),
+                        a.getContentType(),
+                        a.getFileSize(),
+                        a.getUploadedAt()
+                ))
+                .toList();
 
         return CollectionResponse.builder()
                 .collectionId(collection.getId())
@@ -175,6 +195,8 @@ public class CollectionGetService {
                 .totalStudentsCount(totalStudents)
                 .studentsPaidInFullCount(studentsPaidInFull)
                 .goalReachedAt(collection.getGoalReachedAt())
+                .deadline(collection.getDeadline())
+                .attachments(attachments)
                 .build();
     }
 }

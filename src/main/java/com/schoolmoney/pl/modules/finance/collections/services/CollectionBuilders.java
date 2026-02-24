@@ -22,6 +22,7 @@ public class CollectionBuilders {
                 .title(request.title())
                 .description(request.description())
                 .goal(request.goal())
+                .deadline(request.deadline())
                 .logo(null)
                 .financeAccount(financeAccount)
                 .status(CollectionStatus.ACTIVE)

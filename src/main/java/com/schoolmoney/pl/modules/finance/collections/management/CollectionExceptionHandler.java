@@ -33,4 +33,25 @@ public class CollectionExceptionHandler {
         CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(NoFundsToTransferException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "400", description = "Collection has no funds to transfer.",
+                    content = @Content(
+                            examples = @ExampleObject(value = """
+                                      {
+                                      "data": null,
+                                      "message": "Collection has no funds to transfer",
+                                      "status": "400 BAD_REQUEST"
+                                    }
+                                    """
+                            )
+                    )),
+    })
+    public ResponseEntity<CustomResponse<String>> handleNoFundsToTransferException(NoFundsToTransferException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -4,6 +4,7 @@ import com.schoolmoney.pl.modules.finance.collections.models.CollectionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,8 +16,14 @@ public record CollectionPaymentSummaryResponse(
         @Schema(description = "Collection title", example = "Field trip to Gdansk")
         String collectionTitle,
 
+        @Schema(description = "Collection description")
+        String description,
+
         @Schema(description = "Total goal amount", example = "100")
         Long totalGoal,
+
+        @Schema(description = "Per-student goal amount", example = "20.00")
+        Double perStudentGoal,
 
         @Schema(description = "Total amount collected", example = "75.00")
         Double totalCollected,
@@ -26,6 +33,9 @@ public record CollectionPaymentSummaryResponse(
 
         @Schema(description = "Collection status", example = "ACTIVE")
         CollectionStatus status,
+
+        @Schema(description = "Collection deadline")
+        Instant deadline,
 
         @Schema(description = "Total number of students in class", example = "5")
         Integer totalStudents,

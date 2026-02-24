@@ -1,8 +1,10 @@
 package com.schoolmoney.pl.modules.finance.financeAccount;
 
+import com.schoolmoney.pl.modules.finance.financeAccount.models.ExternalPaymentRequest;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountCreateRequest;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountEditRequest;
 import com.schoolmoney.pl.modules.finance.financeAccount.models.FinanceAccountGetResponse;
+import com.schoolmoney.pl.modules.finance.financeAccount.service.ExternalPaymentService;
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountCreateService;
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountEditService;
 import com.schoolmoney.pl.modules.finance.financeAccount.service.FinanceAccountGetService;
@@ -25,6 +27,7 @@ public class FinanceAccountController {
     private final FinanceAccountGetService financeAccountGetService;
     private final FinanceAccountCreateService financeAccountCreateService;
     private final FinanceAccountEditService financeAccountEditService;
+    private final ExternalPaymentService externalPaymentService;
 
     @GetMapping("/")
     @Operation(
@@ -56,8 +59,8 @@ public class FinanceAccountController {
 
     @PutMapping("/{financeAccountId}")
     @Operation(
-            description = "Edit finance account",
-            summary = "Edit finance account"
+            description = "Top-up finance account (increment balance)",
+            summary = "Top-up finance account"
     )
     @PreAuthorize("permitAll()")
     public ResponseEntity<CustomResponse<Void>> editFinanceAccount(
@@ -65,6 +68,21 @@ public class FinanceAccountController {
             @Valid @RequestBody FinanceAccountEditRequest editRequest
     ) {
         financeAccountEditService.editFinanceAccount(editRequest, financeAccountId);
+
+        return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/external-payment")
+    @Operation(
+            description = "Process external payment (treasurer only)",
+            summary = "External payment"
+    )
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<CustomResponse<Void>> externalPayment(
+            @Valid @RequestBody ExternalPaymentRequest paymentRequest
+    ) {
+        externalPaymentService.processExternalPayment(paymentRequest);
 
         return new ResponseEntity<>(new CustomResponse<>(null, DEFAULT_RESPONSE, HttpStatus.OK),
                 HttpStatus.OK);

@@ -8,6 +8,7 @@ import com.schoolmoney.pl.modules.finance.collections.management.CollectionNotFo
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
 import com.schoolmoney.pl.modules.finance.contributions.management.ContributionManager;
 import com.schoolmoney.pl.modules.finance.contributions.models.*;
+import com.schoolmoney.pl.modules.finance.refunds.management.RefundRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ public class CollectionPaymentSummaryService {
     private final CollectionManager collectionManager;
     private final ContributionManager contributionManager;
     private final ClassMemberManager classMemberManager;
+    private final RefundRepository refundRepository;
 
     public CollectionPaymentSummaryResponse getPaymentSummary(UUID collectionId) {
         log.info("Getting payment summary for collection: {}", collectionId);
@@ -53,11 +55,13 @@ public class CollectionPaymentSummaryService {
         // Calculate per-student goal
         double perStudentGoal = collection.getGoal().doubleValue() / totalStudents;
 
-        // Get total collected
-        double totalCollected = contributionManager.sumByCollectionAndStatus(
+        // Get total collected (contributions minus refunds)
+        double totalContributed = contributionManager.sumByCollectionAndStatus(
                 collection.getId(),
                 ContributionStatus.COMPLETED
         );
+        long totalRefunded = refundRepository.sumByCollectionId(collection.getId());
+        double totalCollected = totalContributed - totalRefunded;
 
         // Build per-student summaries
         List<StudentPaymentSummary> studentSummaries = new ArrayList<>();
@@ -79,10 +83,13 @@ public class CollectionPaymentSummaryService {
         return CollectionPaymentSummaryResponse.builder()
                 .collectionId(collection.getId())
                 .collectionTitle(collection.getTitle())
+                .description(collection.getDescription())
                 .totalGoal(collection.getGoal())
+                .perStudentGoal(perStudentGoal)
                 .totalCollected(totalCollected)
                 .remainingAmount(Math.max(0, collection.getGoal() - totalCollected))
                 .status(collection.getStatus())
+                .deadline(collection.getDeadline())
                 .totalStudents(totalStudents)
                 .studentsPaidInFull(studentsPaidInFull)
                 .students(studentSummaries)
@@ -149,10 +156,13 @@ public class CollectionPaymentSummaryService {
         return CollectionPaymentSummaryResponse.builder()
                 .collectionId(collection.getId())
                 .collectionTitle(collection.getTitle())
+                .description(collection.getDescription())
                 .totalGoal(collection.getGoal())
+                .perStudentGoal(null)
                 .totalCollected(0.0)
                 .remainingAmount(collection.getGoal().doubleValue())
                 .status(collection.getStatus())
+                .deadline(collection.getDeadline())
                 .totalStudents(0)
                 .studentsPaidInFull(0)
                 .students(new ArrayList<>())
