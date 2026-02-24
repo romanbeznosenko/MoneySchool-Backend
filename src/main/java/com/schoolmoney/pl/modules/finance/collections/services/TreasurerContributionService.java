@@ -56,9 +56,10 @@ public class TreasurerContributionService {
         FinanceAccountDAO treasurerAccount = financeAccountManager.findByOwnerId(user.getId())
                 .orElseThrow(() -> new FinanceAccountNotFoundException("Treasurer must have a finance account"));
 
-        if (treasurerAccount.getBalance() < amount) {
+        double treasurerBalance = treasurerAccount.getBalance() != null ? treasurerAccount.getBalance() : 0.0;
+        if (treasurerBalance < amount) {
             throw new InsufficientBalanceException(
-                    String.format("Insufficient balance. Available: %.2f PLN", treasurerAccount.getBalance())
+                    String.format("Insufficient balance. Available: %.2f PLN", treasurerBalance)
             );
         }
 
@@ -69,8 +70,9 @@ public class TreasurerContributionService {
         }
 
         // Process transfer
-        treasurerAccount.setBalance(treasurerAccount.getBalance() - amount);
-        collectionAccount.setBalance(collectionAccount.getBalance() + amount);
+        double collectionBalance = collectionAccount.getBalance() != null ? collectionAccount.getBalance() : 0.0;
+        treasurerAccount.setBalance(treasurerBalance - amount);
+        collectionAccount.setBalance(collectionBalance + amount);
 
         financeAccountManager.saveToDatabase(treasurerAccount);
         financeAccountManager.saveToDatabase(collectionAccount);
