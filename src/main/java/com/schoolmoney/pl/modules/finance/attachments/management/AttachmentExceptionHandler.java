@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import java.io.IOException;
 
 @ControllerAdvice
 public class AttachmentExceptionHandler {
@@ -74,5 +77,19 @@ public class AttachmentExceptionHandler {
     public ResponseEntity<CustomResponse<String>> handleInvalidFileTypeException(InvalidFileTypeException ex) {
         CustomResponse<String> response = new CustomResponse<>(null, ex.getMessage(), HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ResponseEntity<CustomResponse<String>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, "File too large. Maximum allowed size is 20MB", HttpStatus.PAYLOAD_TOO_LARGE);
+        return new ResponseEntity<>(response, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<CustomResponse<String>> handleIOException(IOException ex) {
+        CustomResponse<String> response = new CustomResponse<>(null, "Failed to process file upload", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
