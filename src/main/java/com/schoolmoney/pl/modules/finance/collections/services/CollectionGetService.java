@@ -11,6 +11,8 @@ import com.schoolmoney.pl.modules.classes.management.ClassManager;
 import com.schoolmoney.pl.modules.classes.management.ClassSpecifications;
 import com.schoolmoney.pl.modules.classes.models.ClassDAO;
 import com.schoolmoney.pl.modules.classes.models.ClassGetResponse;
+import com.schoolmoney.pl.modules.finance.attachments.management.CollectionAttachmentRepository;
+import com.schoolmoney.pl.modules.finance.attachments.models.AttachmentResponse;
 import com.schoolmoney.pl.modules.finance.collections.management.CollectionManager;
 import com.schoolmoney.pl.modules.finance.collections.management.CollectionSpecifications;
 import com.schoolmoney.pl.modules.finance.collections.models.CollectionDAO;
@@ -43,6 +45,7 @@ public class CollectionGetService {
     private final ClassMemberManager classMemberManager;
     private final ContributionManager contributionManager;
     private final RefundRepository refundRepository;
+    private final CollectionAttachmentRepository attachmentRepository;
 
     public CollectionPageResponse get(int limit, int page, boolean isTreasurer){
         log.info("Getting all collections");
@@ -148,6 +151,19 @@ public class CollectionGetService {
                     .build();
         }
 
+        // Build attachments list
+        List<AttachmentResponse> attachments = attachmentRepository
+                .findByCollectionId(collection.getId())
+                .stream()
+                .map(a -> new AttachmentResponse(
+                        a.getId(),
+                        a.getFilename(),
+                        a.getContentType(),
+                        a.getFileSize(),
+                        a.getUploadedAt()
+                ))
+                .toList();
+
         return CollectionResponse.builder()
                 .collectionId(collection.getId())
                 .title(collection.getTitle())
@@ -180,6 +196,7 @@ public class CollectionGetService {
                 .studentsPaidInFullCount(studentsPaidInFull)
                 .goalReachedAt(collection.getGoalReachedAt())
                 .deadline(collection.getDeadline())
+                .attachments(attachments)
                 .build();
     }
 }
