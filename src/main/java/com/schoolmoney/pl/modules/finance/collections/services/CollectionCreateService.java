@@ -43,7 +43,7 @@ public class CollectionCreateService {
     private static final String COUNTRY_CODE = "PL";
 
     @Transactional
-    public void create(CollectionRequest collectionRequest, UUID classId){
+    public UUID create(CollectionRequest collectionRequest, UUID classId){
         log.info("Creating collection for class with id: {}", classId);
 
         UserDAO userDAO = (UserDAO)request.getAttribute("user");
@@ -76,9 +76,10 @@ public class CollectionCreateService {
         );
         CollectionDAO collectionDAO = collectionMapper.mapToEntity(collection, new CycleAvoidingMappingContext());
         collectionDAO.setFinanceAccount(financeAccountDAO); // transient
-        collectionManager.saveToDatabase(collectionDAO);    // cascade persist will handle financeAccountDAO
+        CollectionDAO saved = collectionManager.saveToDatabase(collectionDAO);
 
         log.info("Successfully created collection for class with id: {}", classId);
+        return saved.getId();
     }
 
     private String generatePolishIban() {
